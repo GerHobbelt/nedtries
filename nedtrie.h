@@ -156,17 +156,17 @@ static INLINE unsigned nedtriebitscanr(size_t value)
 #if defined(_MSC_VER) && !defined(__cplusplus_cli)
   {
     unsigned long bitpos;
-#if defined(_M_IA64) || defined(_M_X64) || defined(WIN64)
+#if defined(_M_IA64) || defined(_M_X64) || defined(WIN64) || defined(_WIN64) 
     assert(8==sizeof(size_t));
     _BitScanReverse64(&bitpos, value);
 #else
     assert(4==sizeof(size_t));
-    _BitScanReverse(&bitpos, value);
+    _BitScanReverse(&bitpos, (unsigned) value);
 #endif
     return (unsigned) bitpos;
   }
 #elif defined(__GNUC__)
-  return sizeof(value)*CHAR_BIT - 1 - (unsigned) __builtin_clzl(value);
+  return sizeof(value) * 8 /*CHAR_BIT*/ - 1 - (unsigned) __builtin_clzl(value);
 #else
   /* The following code is illegal C, but it almost certainly will work.
   If not use the legal implementation below */
@@ -195,8 +195,10 @@ static INLINE unsigned nedtriebitscanr(size_t value)
   x = x | (x >> 2);
   x = x | (x >> 4);
   x = x | (x >> 8);
-  if(16 < sizeof(x)*CHAR_BIT) x = x | (x >>16);
-  if(32 < sizeof(x)*CHAR_BIT) x = x | (x >>32);
+  if(16 < sizeof(x) * CHAR_BIT)
+    x = x | (x >> 16);
+  if(32 < sizeof(x) * CHAR_BIT)
+    x = x | (x >> 32);
   x = ~x;
   x = x - ((x >> 1) & (SIZE_MAX/3));
   x = (x & (SIZE_MAX/15*3)) + ((x >> 2) & (SIZE_MAX/15*3));
